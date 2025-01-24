@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscaminas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    #tablero1, #tablero2 {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      grid-template-rows: repeat(10, 40px);
+      gap: 2px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .celda {
+      width: 40px;
+      height: 40px;
+      background-color: #cccccc;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 40px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .celda.abierta {
+      background-color: #eeeeee;
+      cursor: default;
+    }
+    .celda.bandera {
+      background-color: rgba(255, 208, 0, 0.952);
+      color: white;
+    }
+    .celda.mina {
+      background-color: red;
+      color: white;
+    }
+    .celda.vida {
+      background-color: #2bff00;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Buscaminas</h1>
+  <h2>BARCOS HUNDIDOS JUGADOR 1: <span id="puntos">0</span></h2>
+  <h2>BARCOS HUNDIDOS JUGADOR 2: <span id="puntos2">0</span></h2>
+
+  <div id="tablero1"></div>
+  <div id="tablero2"></div>
+
+  <script>
+    const filas = 10;
+    const columnas = 10;
+    const minas = 10; // Número de minas por tablero
+    let contadorminas1 = 0;
+    let contadorminas2 = 0;
+    let jugador1 = true; // Comienza el jugador 1
+
+    const tablero1 = document.getElementById("tablero1");
+    const tablero2 = document.getElementById("tablero2");
+
+    const celdas1 = [];
+    const celdas2 = [];
+
+    // Crear las celdas de los tableros
+    function crearTablero(tablero, celdas) {
+      for (let fila = 0; fila < filas; fila++) {
+        celdas[fila] = [];
+        for (let columna = 0; columna < columnas; columna++) {
+          const celda = document.createElement("div");
+          celda.classList.add("celda");
+          celda.dataset.fila = fila;
+          celda.dataset.columna = columna;
+          celda.dataset.mina = "false"; // Inicialmente no hay mina
+          tablero.appendChild(celda);
+          celdas[fila][columna] = celda;
+        }
+      }
+    }
+
+    // Colocar minas aleatoriamente en un tablero
+    function colocarMinas(celdas) {
+      let minasColocadas = 0;
+      while (minasColocadas < minas) {
+        const filaAleatoria = Math.floor(Math.random() * filas);
+        const columnaAleatoria = Math.floor(Math.random() * columnas);
+        const celda = celdas[filaAleatoria][columnaAleatoria];
+        if (celda.dataset.mina === "false") {
+          celda.dataset.mina = "true"; // Colocamos una mina
+          minasColocadas++;
+        }
+      }
+    }
+
+    // Actualizar puntos para los jugadores
+    function actualizarPuntos() {
+      document.getElementById("puntos").textContent = contadorminas1;
+      document.getElementById("puntos2").textContent = contadorminas2;
+    }
+
+    // Manejar el clic en una celda
+    function manejarClic(evento, celdas, esJugador1) {
+      const celda = evento.target;
+      if (celda.classList.contains("abierta")) return;
+
+      celda.classList.add("abierta");
+      if (celda.dataset.mina === "true") {
+        celda.classList.add("mina");
+        if (Jugador1) {
+          contadorminas1++; // Incrementar puntos jugador 1
+        } else {
+          contadorminas2++; // Incrementar puntos jugador 2
+        }
+        alert("¡Has tocado un barco!");
+      } else {
+        alert("¡Fallo! Turno del siguiente jugador.");
+        cambiarTurno();
+      }
+
+      actualizarPuntos();
+
+      // Verificar condición de victoria
+      if (contadorminas1 === 5) {
+        alert("¡Jugador 1 ha ganado!");
+        deshabilitarTableros();
+      } else if (contadorminas2 === 5) {
+        alert("¡Jugador 2 ha ganado!");
+        deshabilitarTableros();
+      }
+    }
+
+    // Cambiar turno entre jugadores
+    function cambiarTurno() {
+      if (jugador1) {
+        jugador1 = false;
+        tablero1.removeEventListener("click", manejadorTablero1);
+        tablero2.addEventListener("click", manejadorTablero2);
+      } else {
+        jugador1 = true;
+        tablero2.removeEventListener("click", manejadorTablero2);
+        tablero1.addEventListener("click", manejadorTablero1);
+      }
+    }
+
+    // Deshabilitar ambos tableros al finalizar el juego
+    function deshabilitarTableros() {
+      tablero1.removeEventListener("click", manejadorTablero1);
+      tablero2.removeEventListener("click", manejadorTablero2);
+    }
+
+    // Manejadores de clic
+    function manejadorTablero1(evento) {
+      manejarClic(evento, celdas1, true);
+    }
+
+    function manejadorTablero2(evento) {
+      manejarClic(evento, celdas2, false);
+    }
+
+    // Crear los tableros y colocar las minas
+    crearTablero(tablero1, celdas1);
+    crearTablero(tablero2, celdas2);
+    colocarMinas(celdas1); // Colocar minas para el jugador 1
+    colocarMinas(celdas2); // Colocar minas para el jugador 2
+
+    // Inicializar con el turno del jugador 1
+    tablero1.addEventListener("click", manejadorTablero1);
+  </script>
+</body>
+</html>
